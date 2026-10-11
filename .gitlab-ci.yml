@@ -1,0 +1,27 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  tags:
+    - test-cicd
+  script:
+    - export TARGET_SERVER="192.168.161.129"  # server ip to deploy
+    - export SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY_4"  # remember to setup ssh key
+    - export PROJ_NAME="test-new"  # if project name change, do NOT change this
+    - export USER_NAME="james.chao"  # your gitlab user name
+    - export CI_DEPLOY_TOKEN="$CI_DEPLOY_TOKEN"  # remember to setup git clone key
+    - export CI_DEPLOY_DIR="/home/git/projects"  # where to deploy on server
+    #
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $TARGET_SERVER >> ~/.ssh/known_hosts  # avoid check prompt
+    - sed -i "s/__PROJ_NAME__/$PROJ_NAME/g" .ssh_deploy.sh
+    - sed -i "s/__USER_NAME__/$USER_NAME/g" .ssh_deploy.sh
+    - sed -i "s/__CI_DEPLOY_TOKEN__/$CI_DEPLOY_TOKEN/g" .ssh_deploy.sh
+    - sed -i "s|__CI_DEPLOY_DIR__|$CI_DEPLOY_DIR|g" .ssh_deploy.sh
+    - ssh git@$TARGET_SERVER 'bash -s' < .ssh_deploy.sh
+  only:
+    - main
+  when: manual

@@ -1,0 +1,26 @@
+services:
+  example_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 192.168.161.132:5000/example_server:v1
+    container_name: example_server
+    working_dir: /app
+    ports:
+      - "8004:8004"
+    environment: {}
+    volumes:
+      - ./:/app
+    command: "uvicorn serve:app --reload --host 0.0.0.0 --port 8004"
+
+  example_client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 192.168.161.132:5000/example_client:v1
+    container_name: example_client
+    working_dir: /app
+    environment: {}
+    volumes:
+      - ./:/app
+    command: "tail -f /dev/null"

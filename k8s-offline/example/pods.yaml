@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example-server
+  namespace: example
+  labels:
+    app: example-server
+spec:
+  volumes:
+    - name: app
+      hostPath:
+        path: /home/git/Desktop/projects/k8s-offline/example
+        type: Directory
+  containers:
+    - name: example-server
+      image: 192.168.161.132:5000/example_server:v1
+      workingDir: /app
+      volumeMounts:
+        - name: app
+          mountPath: /app
+      ports:
+        - containerPort: 8004
+          protocol: TCP
+      command:
+        - uvicorn
+      args:
+        - serve:app
+        - --reload
+        - --host
+        - 0.0.0.0
+        - --port
+        - "8004"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-server
+  namespace: example
+spec:
+  selector:
+    app: example-server
+  ports:
+    - port: 8004
+      targetPort: 8004
+      nodePort: 30004
+  type: NodePort
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example-client
+  namespace: example
+  labels:
+    app: example-client
+spec:
+  containers:
+    - name: example-client
+      image: 192.168.161.132:5000/example_client:v1
+      workingDir: /app
+      command:
+        - tail
+      args:
+        - -f
+        - /dev/null
